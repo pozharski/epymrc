@@ -1,6 +1,6 @@
 import array as binarray
 
-def read_array(fin, astype='c', num=1):
+def read_array(fin, astype='B', num=1):
     '''
         Reads an element from a binary stream.
     '''
@@ -14,7 +14,7 @@ def read_byte(fin, num=1):
     '''
         Reads bytes from a binary stream.  Returns a byte stream.
     '''
-    var = binarray.array('c')
+    var = binarray.array('B')
     var.fromfile(fin, num)
     return var.tostring()
 
@@ -62,7 +62,7 @@ def read_fints(fin, num=1):
     values = read_array(fin, astype='f', num=2*num)
     return [complex(x[0],x[1]) for x in zip(*[values[::2],values[1::2]])]
 
-def write_array(fout, values, astype='c'):
+def write_array(fout, values, astype='B'):
     '''
         Writes values to a binary stream.
     '''
@@ -89,7 +89,7 @@ def write_byte(fout, values):
     '''
         Writes bytes to a binary stream.
     '''
-    write_array(fout, values, 'c')
+    write_array(fout, values, 'B')
 
 def write_char(fout, values):
     '''

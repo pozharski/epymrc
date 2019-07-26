@@ -2,9 +2,10 @@
     EPYMRC module implements I/O, manipulation and analysis of the 
     MRC map file format.
 '''
-from helper import read_byte, read_integer, read_float, read_char, read_shortint, read_cints, read_fints, read_shortuint
-from helper import write_char, write_integer, write_float, write_byte, write_shortint, write_cint, write_fint, write_shortuint
+from .helper import read_byte, read_integer, read_float, read_char, read_shortint, read_cints, read_fints, read_shortuint
+from .helper import write_char, write_integer, write_float, write_byte, write_shortint, write_cint, write_fint, write_shortuint
 from scipy import array
+import sys
 
 mode_read = {
                 0   : read_char,
@@ -47,9 +48,15 @@ class mrc(object):
             self.nlabl = read_integer(fin)
             labels = read_byte(fin, 800)
             self.labels = [labels[80*i:80*(i+1)] for i in range(self.nlabl)]
-            symops = read_byte(fin, self.nsymbt)
-            self.symops = [symops[80*i:80*(i+1)] for i in range(self.nsymbt/80)]
-            self.data = array([[mode_read[self.mode](fin,self.nx) for row in range(self.ny)] for section in range(self.nz)])
+            self.read_nsymbt(fin)
+            self.read_data(fin)
+
+    def read_nsymbt(self, fin):
+        symops = read_byte(fin, self.nsymbt)
+        self.symops = [symops[80*i:80*(i+1)] for i in range(int(self.nsymbt/80))]
+
+    def read_data(self, fin):
+        self.data = array([[mode_read[self.mode](fin,self.nx) for row in range(self.ny)] for section in range(self.nz)])
 
     def write(self, fname):
         with open(fname,'wb') as fout:
@@ -70,7 +77,7 @@ class mrc(object):
             write_integer(fout, self.nlabl)
             for label in self.labels:
                 write_byte(fout, label)
-            write_byte(fout, 'x000'*80*(10-self.nlabl))
+            write_byte(fout, [0]*80*(10-self.nlabl))
             for symop in self.symops:
                 write_byte(fout, symop)
             mode_write[self.mode](fout, self.data.flat)
@@ -80,6 +87,14 @@ class mrc(object):
         self.dmax = self.data.max()
         self.dmean = self.data.mean()
         self.rms = self.data.std()
+
+class epumrc(mrc):
+    def read_nsymbt(self, fin):
+        self.metadata = read_byte(fin, self.nsymbt)
+    def read_data(self, fin):
+        pass
+    def write(self, fname):
+        sys.stderr.write("EPUMRC writing not implemented\n")
 
 class unit_cell(object):
     def __init__(self, *args, **kwds):
