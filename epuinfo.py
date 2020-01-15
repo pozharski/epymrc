@@ -15,13 +15,13 @@ args = parser.parse_args()
 
 import mrcfile
 
-with mrcfile.open(args.mrcsmall) as mrc:
+with mrcfile.open(args.mrcsmall, header_only=True) as mrc:
     if len(mrc.extended_header):
         exthead = dict([[mrc.extended_header.dtype.names[i],str(mrc.extended_header[0][i])] for i in range(len(mrc.extended_header.dtype.names))])
     else:
         exthead = None
 
-with mrcfile.open(args.mrcbig) as mrc:
+with mrcfile.open(args.mrcbig, header_only=True) as mrc:
     bh = mrc.header
 
 print("Number of frames:      %d" % bh.nz)
